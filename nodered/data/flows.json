@@ -1,0 +1,325 @@
+[
+    {
+        "id": "0f52b073fddce46d",
+        "type": "tab",
+        "label": "Fluxo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "bbe2ae6c038197b0",
+        "type": "mqtt-broker",
+        "name": "Broker",
+        "broker": "mosquitto",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "c8d64b433269464e",
+        "type": "mongodb4-client",
+        "name": "",
+        "protocol": "mongodb",
+        "hostname": "mongo",
+        "port": "27017",
+        "dbName": "iot",
+        "appName": "",
+        "authSource": "",
+        "authMechanism": "DEFAULT",
+        "tls": false,
+        "tlsCAFile": "",
+        "tlsCertificateKeyFile": "",
+        "tlsInsecure": false,
+        "connectTimeoutMS": "30000",
+        "socketTimeoutMS": "0",
+        "minPoolSize": "0",
+        "maxPoolSize": "100",
+        "maxIdleTimeMS": "0",
+        "uri": "",
+        "advanced": "{}",
+        "uriTabActive": "tab-uri-simple"
+    },
+    {
+        "id": "cff1c6fcfd821cf0",
+        "type": "postgreSQLConfig",
+        "name": "Postgres",
+        "host": "postgres",
+        "hostFieldType": "str",
+        "port": 5432,
+        "portFieldType": "num",
+        "database": "iot",
+        "databaseFieldType": "str",
+        "ssl": "false",
+        "sslFieldType": "bool",
+        "applicationName": "",
+        "applicationNameType": "str",
+        "max": 10,
+        "maxFieldType": "num",
+        "idle": 1000,
+        "idleFieldType": "num",
+        "connectionTimeout": 10000,
+        "connectionTimeoutFieldType": "num",
+        "user": "admin",
+        "userFieldType": "str",
+        "password": "admin",
+        "passwordFieldType": "str"
+    },
+    {
+        "id": "17678116870489ba",
+        "type": "mqtt in",
+        "z": "0f52b073fddce46d",
+        "name": "Device Info",
+        "topic": "device/+/info",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "bbe2ae6c038197b0",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 220,
+        "wires": [
+            [
+                "44e1e71fefaba6f8"
+            ]
+        ]
+    },
+    {
+        "id": "44e1e71fefaba6f8",
+        "type": "uuid",
+        "z": "0f52b073fddce46d",
+        "uuidVersion": "v4",
+        "namespaceType": "",
+        "namespace": "",
+        "namespaceCustom": "",
+        "name": "",
+        "field": "payload._id",
+        "fieldType": "msg",
+        "x": 310,
+        "y": 220,
+        "wires": [
+            [
+                "33757cc9fa56dc84"
+            ]
+        ]
+    },
+    {
+        "id": "944cb37c85d6db1c",
+        "type": "mongodb4",
+        "z": "0f52b073fddce46d",
+        "clientNode": "c8d64b433269464e",
+        "mode": "collection",
+        "collection": "",
+        "operation": "",
+        "output": "toArray",
+        "maxTimeMS": "0",
+        "handleDocId": false,
+        "name": "",
+        "x": 850,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "dc8f25615d0f0296",
+        "type": "postgresql",
+        "z": "0f52b073fddce46d",
+        "name": "",
+        "query": "SELECT * FROM ;",
+        "postgreSQLConfig": "cff1c6fcfd821cf0",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 850,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "33757cc9fa56dc84",
+        "type": "function",
+        "z": "0f52b073fddce46d",
+        "name": "function 1",
+        "func": "const deviceId = msg.payload.device_id;\n\nmsg.collection = \"devices\";\nmsg.operation = \"updateOne\";\n\nconst update ={\n    $set:{\n        device_id: deviceId,\n        model: msg.payload.model || null,\n        location: msg.payload.location || null,\n        updated_at: new Date(),\n        status: {\n            last_info_ts: new Date(),\n        },\n        raw: JSON.stringify(msg.payload)\n    },\n    $setOnInsert: { created_at: new Date(), _id: msg.payload._id }\n} \n    \nmsg.payload = [{ device_id: deviceId }, update, { upsert: true }];\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 220,
+        "wires": [
+            [
+                "944cb37c85d6db1c"
+            ]
+        ]
+    },
+    {
+        "id": "778db866b7b8d784",
+        "type": "mqtt in",
+        "z": "0f52b073fddce46d",
+        "name": "Device Status",
+        "topic": "device/+/status/humidity",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "bbe2ae6c038197b0",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 320,
+        "wires": [
+            [
+                "c135d8169f77f39a"
+            ]
+        ]
+    },
+    {
+        "id": "c135d8169f77f39a",
+        "type": "uuid",
+        "z": "0f52b073fddce46d",
+        "uuidVersion": "v4",
+        "namespaceType": "",
+        "namespace": "",
+        "namespaceCustom": "",
+        "name": "",
+        "field": "payload._id",
+        "fieldType": "msg",
+        "x": 310,
+        "y": 320,
+        "wires": [
+            [
+                "b881d5e8930489e4"
+            ]
+        ]
+    },
+    {
+        "id": "b881d5e8930489e4",
+        "type": "function",
+        "z": "0f52b073fddce46d",
+        "name": "function 2",
+        "func": "const mongoTelemetry = {\n    collection: \"telemetry\",\n    operation: \"insertOne\",\n    payload: {\n        _id: msg.payload._id,\n        device_id: msg.payload.device_id,\n        humidity: msg.payload.humidity,\n        unit: msg.payload.unit,\n        created_at: new Date(),\n        raw: JSON.stringify(msg.payload)\n    }\n}\n\nlet postgres = {\n    query: \"INSERT INTO readings (id, device_id, data, unit, created_at) VALUES ($1, $2, $3, $4, $5)\",\n    params: [\n        msg.payload._id,\n        msg.payload.device_id,\n        msg.payload.humidity,\n        msg.payload.unit,\n        new Date()\n    ]\n}\n\nreturn [mongoTelemetry, postgres];\n\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 320,
+        "wires": [
+            [
+                "944cb37c85d6db1c"
+            ],
+            [
+                "dc8f25615d0f0296"
+            ]
+        ]
+    },
+    {
+        "id": "5e49cebce8a0abdc",
+        "type": "mqtt in",
+        "z": "0f52b073fddce46d",
+        "name": "Device validations",
+        "topic": "device/+/status/humidity",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "bbe2ae6c038197b0",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 170,
+        "y": 420,
+        "wires": [
+            [
+                "46a8cc7860991edc"
+            ]
+        ]
+    },
+    {
+        "id": "46a8cc7860991edc",
+        "type": "uuid",
+        "z": "0f52b073fddce46d",
+        "uuidVersion": "v4",
+        "namespaceType": "",
+        "namespace": "",
+        "namespaceCustom": "",
+        "name": "",
+        "field": "payload._id",
+        "fieldType": "msg",
+        "x": 370,
+        "y": 420,
+        "wires": [
+            [
+                "e76a1c760ccf2fe7"
+            ]
+        ]
+    },
+    {
+        "id": "e76a1c760ccf2fe7",
+        "type": "function",
+        "z": "0f52b073fddce46d",
+        "name": "function 3",
+        "func": "const data = msg.payload;\n\nif (data.humidity < 40) {\n    msg.collection = 'irrigation_alerts ';\n    msg.operation = 'insertOne';\n\n    msg.payload.humidity = data.humidity,\n    msg.payload.device_id = data.device_id,\n    msg.payload.unit = data.unity\n\n}\n\n\nreturn msg\n/*payload: {\n        _id: msg.payload._id,\n        device_id: msg.payload.device_id,\n        humidity: msg.payload.humidity,\n        unit: msg.payload.unit,\n        created_at: new Date(),\n        raw: JSON.stringify(msg.payload)\n    }*/",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 540,
+        "y": 420,
+        "wires": [
+            [
+                "944cb37c85d6db1c",
+                "17d84e99b986c51f"
+            ]
+        ]
+    },
+    {
+        "id": "17d84e99b986c51f",
+        "type": "debug",
+        "z": "0f52b073fddce46d",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 760,
+        "y": 580,
+        "wires": []
+    }
+]

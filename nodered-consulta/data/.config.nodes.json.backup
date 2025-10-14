@@ -1,7 +1,7 @@
 {
     "node-red": {
         "name": "node-red",
-        "version": "4.1.0",
+        "version": "4.1.1",
         "local": false,
         "user": false,
         "nodes": {
@@ -463,6 +463,26 @@
                 "user": false,
                 "module": "node-red-contrib-uuid",
                 "file": "/data/node_modules/node-red-contrib-uuid/uuid/uuid.js"
+            }
+        }
+    },
+    "node-red-contrib-postgresql": {
+        "name": "node-red-contrib-postgresql",
+        "version": "0.15.4",
+        "local": true,
+        "user": true,
+        "nodes": {
+            "postgresql": {
+                "name": "postgresql",
+                "types": [
+                    "postgreSQLConfig",
+                    "postgresql"
+                ],
+                "enabled": true,
+                "local": true,
+                "user": false,
+                "module": "node-red-contrib-postgresql",
+                "file": "/data/node_modules/node-red-contrib-postgresql/postgresql.js"
             }
         }
     }
